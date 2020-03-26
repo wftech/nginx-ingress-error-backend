@@ -18,7 +18,7 @@ package main
 
 import (
 	"fmt"
-	"io"
+	"html/template"
 	"log"
 	"mime"
 	"net/http"
@@ -125,26 +125,40 @@ func errorHandler(path string) func(http.ResponseWriter, *http.Request) {
 		if !strings.HasPrefix(ext, ".") {
 			ext = "." + ext
 		}
+		// TODO
+		if ext == ".htm" {
+			ext = ".html"
+		}
 		file := fmt.Sprintf("%v/%v%v", path, code, ext)
-		f, err := os.Open(file)
+		_, err = os.Stat(file)
 		if err != nil {
 			log.Printf("unexpected error opening file: %v", err)
 			scode := strconv.Itoa(code)
 			file := fmt.Sprintf("%v/%cxx%v", path, scode[0], ext)
-			f, err := os.Open(file)
+			_, err = os.Stat(file)
 			if err != nil {
 				log.Printf("unexpected error opening file: %v", err)
 				http.NotFound(w, r)
 				return
 			}
-			defer f.Close()
+			tmpl := template.Must(template.ParseFiles(file))
 			log.Printf("serving custom error response for code %v and format %v from file %v", code, format, file)
-			io.Copy(w, f)
+			data := struct {
+				RequestId string
+			}{
+				r.Header.Get(RequestId),
+			}
+			tmpl.Execute(w, data)
 			return
 		}
-		defer f.Close()
+		tmpl := template.Must(template.ParseFiles(file))
 		log.Printf("serving custom error response for code %v and format %v from file %v", code, format, file)
-		io.Copy(w, f)
+		data := struct {
+			RequestId string
+		}{
+			r.Header.Get(RequestId),
+		}
+		tmpl.Execute(w, data)
 
 		duration := time.Now().Sub(start).Seconds()
 

@@ -1,1 +1,1 @@
-5xx json
+{ "http-error": "5xx", "message": "Something bad happened." }

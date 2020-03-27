@@ -63,6 +63,11 @@ const (
 	ErrFilesPathVar = "ERROR_FILES_PATH"
 )
 
+func init() {
+	mime.AddExtensionType(".html", "text/html")
+	mime.AddExtensionType(".json", "application/json")
+}
+
 func main() {
 	errFilesPath := "/www"
 	if os.Getenv(ErrFilesPathVar) != "" {
@@ -124,10 +129,6 @@ func errorHandler(path string) func(http.ResponseWriter, *http.Request) {
 
 		if !strings.HasPrefix(ext, ".") {
 			ext = "." + ext
-		}
-		// TODO
-		if ext == ".htm" {
-			ext = ".html"
 		}
 		file := fmt.Sprintf("%v/%v%v", path, code, ext)
 		_, err = os.Stat(file)

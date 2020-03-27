@@ -1,1 +1,1 @@
-{ "http-error": "4xx", "message": "Something bad happened." }
+{ "http-error": "4xx", "message": "Something bad happened.", "request-id": "{{.RequestId}}" }

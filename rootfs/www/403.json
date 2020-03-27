@@ -1,1 +1,1 @@
-{ "http-error": "403", "message": "You are not allowed to access that page" }
+{ "http-error": "403", "message": "You are not allowed to access that page", "request-id": "{{.RequestId}}" }

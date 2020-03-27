@@ -6,9 +6,11 @@ It is based on the [example error backend][original] with predefined error pages
 
 We used [haproxy error pages][error-pages] from [Jonatahan Rosewood][jonathan]. Thanks.
 
-# How to build
+# How to build and test
 
-TBD
+    go build 
+    DEBUG=1 ERROR_FILES_PATH=./rootfs/www ./nginx-ingress-error-backend
+    curl localhost:8080 -H 'X-Code: 502' -I
 
 # How to deploy
 

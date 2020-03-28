@@ -20,13 +20,11 @@ import (
 	"fmt"
 	"html/template"
 	"log"
-	"mime"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -63,11 +61,6 @@ const (
 	ErrFilesPathVar = "ERROR_FILES_PATH"
 )
 
-func init() {
-	mime.AddExtensionType(".html", "text/html")
-	mime.AddExtensionType(".json", "application/json")
-}
-
 func main() {
 	errFilesPath := "/www"
 	if os.Getenv(ErrFilesPathVar) != "" {
@@ -103,70 +96,66 @@ func errorHandler(path string) func(http.ResponseWriter, *http.Request) {
 		}
 
 		format := r.Header.Get(FormatHeader)
-		if format == "" {
-			format = "text/html"
-			log.Printf("format not specified. Using %v", format)
-		}
 
-		cext, err := mime.ExtensionsByType(format)
-		if err != nil {
-			log.Printf("unexpected error reading media type extension: %v. Using %v", err, ext)
+		switch format {
+		case "application/json":
+			format = "application/json"
+			ext = "json"
+		default:
 			format = "text/html"
-		} else if len(cext) == 0 {
-			log.Printf("couldn't get media type extension. Using %v", ext)
-		} else {
-			ext = cext[0]
+			ext = "html"
 		}
 		w.Header().Set(ContentType, format)
 
+		var code int
+		var status_label string
 		errCode := r.Header.Get(CodeHeader)
-		code, err := strconv.Atoi(errCode)
-		if err != nil {
+		if errCode == "" {
 			code = 404
-			log.Printf("unexpected error reading return code: %v. Using %v", err, code)
+			status_label = "default"
+		} else {
+		    status_label = "errCode"
+			a_code, err := strconv.Atoi(errCode)
+			if err != nil {
+				code = 404
+				log.Printf("unexpected error reading return code: %v. Using %v", err, code)
+			} else {
+				code = a_code
+			}
 		}
 		w.WriteHeader(code)
 
 		if !strings.HasPrefix(ext, ".") {
 			ext = "." + ext
 		}
-		file := fmt.Sprintf("%v/%v%v", path, code, ext)
-		_, err = os.Stat(file)
+		filename := fmt.Sprintf("%v/%v%v", path, code, ext)
+		_, err := os.Stat(filename)
 		if err != nil {
 			log.Printf("unexpected error opening file: %v", err)
 			scode := strconv.Itoa(code)
-			file := fmt.Sprintf("%v/%cxx%v", path, scode[0], ext)
-			_, err = os.Stat(file)
+			filename := fmt.Sprintf("%v/%cxx%v", path, scode[0], ext)
+			_, err = os.Stat(filename)
 			if err != nil {
 				log.Printf("unexpected error opening file: %v", err)
+				errorCount.Inc()
 				http.NotFound(w, r)
 				return
 			}
-			tmpl := template.Must(template.ParseFiles(file))
-			log.Printf("serving custom error response for code %v and format %v from file %v", code, format, file)
-			data := struct {
-				RequestId string
-			}{
-				r.Header.Get(RequestId),
-			}
-			tmpl.Execute(w, data)
-			return
 		}
-		tmpl := template.Must(template.ParseFiles(file))
-		log.Printf("serving custom error response for code %v and format %v from file %v", code, format, file)
+
+		tmpl := template.Must(template.ParseFiles(filename))
 		data := struct {
 			RequestId string
 		}{
 			r.Header.Get(RequestId),
 		}
-		tmpl.Execute(w, data)
 
-		duration := time.Now().Sub(start).Seconds()
+		tmpl.Execute(w, data)
 
 		proto := strconv.Itoa(r.ProtoMajor)
 		proto = fmt.Sprintf("%s.%s", proto, strconv.Itoa(r.ProtoMinor))
-
-		requestCount.WithLabelValues(proto).Inc()
-		requestDuration.WithLabelValues(proto).Observe(duration)
+		requestCount.WithLabelValues(proto, errCode).Inc()
+		duration := time.Now().Sub(start).Seconds()
+		requestDuration.WithLabelValues(proto, status_label).Observe(duration)
 	}
 }

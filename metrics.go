@@ -33,7 +33,14 @@ var (
 		Subsystem: subsystem,
 		Name:      "request_count_total",
 		Help:      "Counter of HTTP requests made.",
-	}, []string{"proto"})
+	}, []string{"proto", "status"})
+
+	errorCount = prometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: namespace,
+		Subsystem: subsystem,
+		Name:      "error_count_total",
+		Help:      "Number of errors in rendering",
+	})
 
 	requestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: namespace,
@@ -41,5 +48,11 @@ var (
 		Name:      "request_duration_milliseconds",
 		Help:      "Histogram of the time (in milliseconds) each request took.",
 		Buckets:   append([]float64{.001, .003}, prometheus.DefBuckets...),
-	}, []string{"proto"})
+	}, []string{"proto", "status"})
 )
+
+func init() {
+    prometheus.MustRegister(errorCount)
+    prometheus.MustRegister(requestCount)
+    prometheus.MustRegister(requestDuration)
+}

@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"html/template"
 	"log"
 	"net/http"
@@ -25,7 +26,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
@@ -114,7 +114,7 @@ func errorHandler(path string) func(http.ResponseWriter, *http.Request) {
 			code = 404
 			status_label = "default"
 		} else {
-		    status_label = errCode
+			status_label = errCode
 			a_code, err := strconv.Atoi(errCode)
 			if err != nil {
 				code = 404

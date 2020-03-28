@@ -38,6 +38,8 @@ We used [haproxy error pages][error-pages] from [Jonatahan Rosewood][jonathan] a
 3. according to the [ingress parameters][ingress-parameters], update [command line arguments][command-line-args] to set [default backend][default-backend].
    `--default-backend-service=ingress-nginx/default-backend`
 
+4. Add `custom-http-errors: 503,502,403` to [ingress config map][custom-http-errors].
+
 
 # License
 
@@ -53,3 +55,4 @@ Apache 2 (same as from [original][original] example)
 [ingress-parameters]: https://kubernetes.github.io/ingress-nginx/examples/customization/custom-errors/#ingress-controller-configuration
 [default-backend]: https://kubernetes.github.io/ingress-nginx/user-guide/default-backend/
 [command-line-args]: https://kubernetes.github.io/ingress-nginx/user-guide/cli-arguments/
+[custom-http-errors]: https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#custom-http-errors

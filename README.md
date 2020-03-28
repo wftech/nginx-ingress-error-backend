@@ -28,11 +28,20 @@ We used [haproxy error pages][error-pages] from [Jonatahan Rosewood][jonathan] a
 
     # run the image
     docker run --rm -it -e DEBUG=1 -p 8080:8080 localhost/custom-error:latest
-    
+
+## How to deploy
+
+1. deploy the image to Deployment
+
+2. deply Service named `default-backend` to some namespace ( we use `ingress-nginx` )
+
+3. according to the [ingress parameters][ingress-parameters], update [command line arguments][command-line-args] to set [default backend][default-backend].
+   `--default-backend-service=ingress-nginx/default-backend`
+
 
 # License
 
-Apache 2 (from [original][original] source])
+Apache 2 (same as from [original][original] example)
 
 
 [the-ingress]: https://kubernetes.github.io/ingress-nginx/
@@ -40,3 +49,7 @@ Apache 2 (from [original][original] source])
 [original]: https://github.com/kubernetes/ingress-nginx/tree/master/images/custom-error-pages
 [error-pages]: https://github.com/Jonathan-Rosewood/haproxy-custom-errors
 [jonathan]: https://github.com/Jonathan-Rosewood
+[ingress-config]: https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
+[ingress-parameters]: https://kubernetes.github.io/ingress-nginx/examples/customization/custom-errors/#ingress-controller-configuration
+[default-backend]: https://kubernetes.github.io/ingress-nginx/user-guide/default-backend/
+[command-line-args]: https://kubernetes.github.io/ingress-nginx/user-guide/cli-arguments/

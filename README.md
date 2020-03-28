@@ -1,12 +1,12 @@
 # Error backend for nginx ingress
 
-Warning: This repository is Work In Progress.
+**Warning:** This repository is _Proof Of Concept_.
  
-This is error backend for [Nginx ingress Controller][the-ingress]. 
+This is default backend for [Nginx ingress Controller][the-ingress]. 
+It is based on the [example error backend][original] with predefined error pages and Go templating.
+We have fixed some errors and added few new ones.
 
-It is based on the [example error backend][original] with predefined error pages and Go templating. 
-
-We used [haproxy error pages][error-pages] from [Jonatahan Rosewood][jonathan] as a base for the error messages.
+We used [haproxy error pages][error-pages] from [Jonathan Rosewood][jonathan] as a base for the error messages. Thank you.
 
 # How to build and test
 
@@ -20,7 +20,6 @@ We used [haproxy error pages][error-pages] from [Jonatahan Rosewood][jonathan] a
     curl localhost:8080 -H 'X-Code: 502' -I
 
 # How to do build Docker image
-
 
     # build static Docker image
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o custom-error-pages
@@ -39,6 +38,8 @@ We used [haproxy error pages][error-pages] from [Jonatahan Rosewood][jonathan] a
    `--default-backend-service=ingress-nginx/default-backend`
 
 4. Add `custom-http-errors: 503,502,403` to [ingress config map][custom-http-errors].
+
+5. Watch metrics `default_http_backend_http_error_count_total > 0`. 
 
 
 # License

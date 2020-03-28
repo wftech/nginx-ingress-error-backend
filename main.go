@@ -114,7 +114,7 @@ func errorHandler(path string) func(http.ResponseWriter, *http.Request) {
 			code = 404
 			status_label = "default"
 		} else {
-		    status_label = "errCode"
+		    status_label = errCode
 			a_code, err := strconv.Atoi(errCode)
 			if err != nil {
 				code = 404
@@ -137,7 +137,7 @@ func errorHandler(path string) func(http.ResponseWriter, *http.Request) {
 			_, err = os.Stat(filename)
 			if err != nil {
 				log.Printf("unexpected error opening file: %v", err)
-				errorCount.Inc()
+				errorCount.WithLabelValues(status_label).Inc()
 				http.NotFound(w, r)
 				return
 			}
@@ -154,7 +154,7 @@ func errorHandler(path string) func(http.ResponseWriter, *http.Request) {
 
 		proto := strconv.Itoa(r.ProtoMajor)
 		proto = fmt.Sprintf("%s.%s", proto, strconv.Itoa(r.ProtoMinor))
-		requestCount.WithLabelValues(proto, errCode).Inc()
+		requestCount.WithLabelValues(proto, status_label).Inc()
 		duration := time.Now().Sub(start).Seconds()
 		requestDuration.WithLabelValues(proto, status_label).Observe(duration)
 	}

@@ -35,12 +35,12 @@ var (
 		Help:      "Counter of HTTP requests made.",
 	}, []string{"proto", "status"})
 
-	errorCount = prometheus.NewCounter(prometheus.CounterOpts{
+	errorCount = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: namespace,
 		Subsystem: subsystem,
 		Name:      "error_count_total",
 		Help:      "Number of errors in rendering",
-	})
+	}, []string{"status"})
 
 	requestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: namespace,

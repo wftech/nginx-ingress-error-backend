@@ -44,6 +44,8 @@ There is secondary port 8081, which can be used for health checking (on `/health
 
 5. Watch metrics `default_http_backend_http_error_count_total > 0`. 
 
+Example manifests are available at [GitHub repository][example-manifests]. You still have to modify ingress config.
+
 
 # License
 
@@ -60,3 +62,4 @@ Apache 2 (same as from [original][original] example)
 [default-backend]: https://kubernetes.github.io/ingress-nginx/user-guide/default-backend/
 [command-line-args]: https://kubernetes.github.io/ingress-nginx/user-guide/cli-arguments/
 [custom-http-errors]: https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#custom-http-errors
+[example-manifests]: https://github.com/wftech/nginx-ingress-error-backend/tree/master/manifests

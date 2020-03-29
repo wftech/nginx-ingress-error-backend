@@ -25,6 +25,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -67,15 +68,38 @@ func main() {
 		errFilesPath = os.Getenv(ErrFilesPathVar)
 	}
 
-	http.HandleFunc("/", errorHandler(errFilesPath))
+	wg := new(sync.WaitGroup)
+	wg.Add(2)
 
-	http.Handle("/metrics", promhttp.Handler())
+	errFilesMux := http.NewServeMux()
+	errFilesMux.HandleFunc("/", errorHandler(errFilesPath))
 
-	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+	go func() {
+		errFilesServer := http.Server{
+			Addr:    ":8080",
+			Handler: errFilesMux,
+		}
+		errFilesServer.ListenAndServe()
+		wg.Done()
+	}()
+
+	promMux := http.NewServeMux()
+	promMux.Handle("/metrics", promhttp.Handler())
+
+	promMux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	http.ListenAndServe(fmt.Sprintf(":8080"), nil)
+	go func() {
+		promServer := http.Server{
+			Addr:    ":8081",
+			Handler: promMux,
+		}
+		promServer.ListenAndServe()
+		wg.Done()
+	}()
+
+	wg.Wait()
 }
 
 func errorHandler(path string) func(http.ResponseWriter, *http.Request) {

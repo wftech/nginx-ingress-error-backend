@@ -19,6 +19,9 @@ We used [haproxy error pages][error-pages] from [Jonathan Rosewood][jonathan] as
     # test in other terminal
     curl localhost:8080 -H 'X-Code: 502' -I
 
+There is default HTTP backend on port 8080. You should use this as your [ingress default backend][default-backend].
+There is secondary port 8081, which can be used for health checking (on `/healthz` URI) and monitoring (`/metrics`)
+
 # How to do build Docker image
 
     # build static Docker image

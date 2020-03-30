@@ -18,18 +18,19 @@ We used [haproxy error pages][error-pages] from [Jonathan Rosewood][jonathan] as
     
     # test in other terminal
     curl localhost:8080 -H 'X-Code: 502' -I
+    curl localhost:8081/metrics
 
 There is default HTTP backend on port 8080. You should use this as your [ingress default backend][default-backend].
 There is secondary port 8081, which can be used for health checking (on `/healthz` URI) and monitoring (`/metrics`)
 
-# How to do build Docker image
+# How to build Docker image
 
     # build static Docker image
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o custom-error-pages
     docker build -t localhost/custom-error -f Dockerfile.devel .
 
-    # run the image
-    docker run --rm -it -e DEBUG=1 -p 8080:8080 localhost/custom-error:latest
+    # run and test the image
+    docker run --rm -it -e DEBUG=1 -p 8080:8080 -p 8081:8081 localhost/custom-error:latest
 
 ## How to deploy
 

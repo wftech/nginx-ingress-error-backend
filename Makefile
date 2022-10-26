@@ -4,4 +4,4 @@ build:
 
 .PHONY: test-run
 test-run: build
-	DEBUG=1 ERROR_FILES_PATH=./rootfs/www ./custom-error-pages
+	DEBUG=1 ERROR_FILES_PATH=./rootfs/www CUSTOM_ERROR_FILES_PATH=./rootfs/www.override ./custom-error-pages

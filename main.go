@@ -60,6 +60,10 @@ const (
 	// ErrFilesPathVar is the name of the environment variable indicating
 	// the location on disk of files served by the handler.
 	ErrFilesPathVar = "ERROR_FILES_PATH"
+
+	// CustomErrFilesPathVar is the name of the environment variable indicating
+	// the location on disk of override files served by the handler.
+	CustomErrFilesPathVar = "CUSTOM_ERROR_FILES_PATH"	
 )
 
 func main() {
@@ -68,11 +72,16 @@ func main() {
 		errFilesPath = os.Getenv(ErrFilesPathVar)
 	}
 
+	var customErrFilesPath string
+	if os.Getenv(CustomErrFilesPathVar) != "" {
+		customErrFilesPath = os.Getenv(CustomErrFilesPathVar)
+	}
+
 	wg := new(sync.WaitGroup)
 	wg.Add(2)
 
 	errFilesMux := http.NewServeMux()
-	errFilesMux.HandleFunc("/", errorHandler(errFilesPath))
+	errFilesMux.HandleFunc("/", errorHandler(errFilesPath, customErrFilesPath))
 
 	go func() {
 		errFilesServer := http.Server{
@@ -102,7 +111,7 @@ func main() {
 	wg.Wait()
 }
 
-func errorHandler(path string) func(http.ResponseWriter, *http.Request) {
+func errorHandler(path, customPath string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		ext := "html"
@@ -152,18 +161,33 @@ func errorHandler(path string) func(http.ResponseWriter, *http.Request) {
 		if !strings.HasPrefix(ext, ".") {
 			ext = "." + ext
 		}
-		filename := fmt.Sprintf("%v/%v%v", path, code, ext)
-		_, err := os.Stat(filename)
-		if err != nil {
-			log.Printf("unexpected error opening file: %v", err)
-			scode := strconv.Itoa(code)
-			filename := fmt.Sprintf("%v/%cxx%v", path, scode[0], ext)
-			_, err = os.Stat(filename)
+
+		var filename string
+		if customPath != "" {
+			filename = fmt.Sprintf("%v/%v%v", customPath, code, ext)
+			_, err := os.Stat(filename)
+			if err != nil {
+				filename = ""
+				if os.Getenv("DEBUG") != "" {
+					log.Printf("custom error file for %v code not found: %v", code, err)
+				}
+			} 
+		}
+
+		if filename == "" {
+			filename = fmt.Sprintf("%v/%v%v", path, code, ext)
+			_, err := os.Stat(filename)
 			if err != nil {
 				log.Printf("unexpected error opening file: %v", err)
-				errorCount.WithLabelValues(status_label).Inc()
-				http.NotFound(w, r)
-				return
+				scode := strconv.Itoa(code)
+				filename := fmt.Sprintf("%v/%cxx%v", path, scode[0], ext)
+				_, err = os.Stat(filename)
+				if err != nil {
+					log.Printf("unexpected error opening file: %v", err)
+					errorCount.WithLabelValues(status_label).Inc()
+					http.NotFound(w, r)
+					return
+				}
 			}
 		}
 

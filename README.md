@@ -15,6 +15,9 @@ We used [haproxy error pages][error-pages] from [Jonathan Rosewood][jonathan] as
     
     # run 
     DEBUG=1 ERROR_FILES_PATH=./rootfs/www ./custom-error-pages
+
+    # run with custom error pages
+    DEBUG=1 ERROR_FILES_PATH=./rootfs/www CUSTOM_ERROR_FILES_PATH=./rootfs/www.override ./custom-error-pages
     
     # test in other terminal
     curl localhost:8080 -H 'X-Code: 502' -I
